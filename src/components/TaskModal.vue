@@ -52,16 +52,12 @@ const progress = computed(() =>
   total.value ? Math.round((doneCount.value / total.value) * 100) : 0,
 );
 
-function formatDate(value) {
-  if (!value) return '';
-  const date = new Date(`${String(value).slice(0, 10)}T00:00:00`);
-  return Number.isNaN(date.getTime())
-    ? ''
-    : date.toLocaleDateString('id-ID', {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric',
-      });
+function onDateChange(event) {
+  if (!props.task) return;
+  const raw = event?.detail?.value ?? event?.target?.value ?? '';
+  const value = Array.isArray(raw) ? raw[0] : raw;
+  const text = String(value || '').slice(0, 10);
+  if (/^\d{4}-\d{2}-\d{2}$/.test(text)) props.task.dueDate = text;
 }
 
 async function onCover(event) {
@@ -393,21 +389,30 @@ function submit() {
           </div>
 
           <div class="side-field">
-            <label>Due Date</label>
-            <button class="value-btn" @click="dateOpen = !dateOpen">
+            <label for="task-due">Due Date</label>
+            <div class="date-row">
               <IonIcon :icon="calendarOutline" />
-              {{ formatDate(task.dueDate) || 'Pilih tanggal' }}
+              <input id="task-due" type="date" v-model="task.dueDate" />
+              <button
+                v-if="task.dueDate"
+                class="date-clear"
+                title="Hapus tanggal"
+                @click="task.dueDate = ''"
+              >
+                <IonIcon :icon="closeOutline" />
+              </button>
+            </div>
+            <button class="value-btn" @click="dateOpen = !dateOpen">
+              {{ dateOpen ? 'Tutup kalender' : 'Buka kalender' }}
             </button>
             <div v-if="dateOpen" class="date-panel">
               <IonDatetime
-                v-model="task.dueDate"
+                :value="task.dueDate"
                 presentation="date"
                 :show-default-buttons="true"
                 done-text="OK"
                 cancel-text="Batal"
-                @ionChange="
-                  task.dueDate = String($event.detail.value || '').slice(0, 10)
-                "
+                @ionChange="onDateChange"
               />
               <button
                 class="clear-date"
@@ -959,9 +964,40 @@ function submit() {
   align-items: center;
   justify-content: center;
 }
+.date-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 36px;
+  border: 1px solid var(--c-border);
+  border-radius: 6px;
+  padding: 0 8px;
+  background: var(--c-surface);
+  color: var(--c-text-muted);
+}
+.date-row input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  font-size: 13px;
+  color: var(--c-text);
+}
+.date-clear {
+  border: 0;
+  background: transparent;
+  color: var(--c-text-muted);
+  display: inline-flex;
+  padding: 2px;
+}
+.date-clear:hover {
+  color: var(--c-danger);
+}
 .value-btn {
   width: 100%;
-  min-height: 36px;
+  min-height: 32px;
+  margin-top: 6px;
   border: 1px solid var(--c-border);
   border-radius: 6px;
   background: var(--c-surface);

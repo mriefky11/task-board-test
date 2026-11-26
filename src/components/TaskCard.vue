@@ -116,6 +116,7 @@ const dueStatus = computed(() => {
 
 <style scoped>
 .task-card {
+  flex: 0 0 auto;
   background: var(--c-surface);
   border-radius: var(--radius);
   box-shadow: var(--shadow-card);
