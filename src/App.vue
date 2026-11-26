@@ -6,6 +6,7 @@ import { useBoardStore } from './stores/board'
 import BoardHeader from './components/BoardHeader.vue'
 import BoardColumn from './components/BoardColumn.vue'
 import TaskModal from './components/TaskModal.vue'
+import ConfirmModal from './components/ConfirmModal.vue'
 
 const store = useBoardStore()
 
@@ -16,6 +17,19 @@ const isNew = ref(false)
 
 const newListOpen = ref(false)
 const newListName = ref('')
+
+const confirm = ref({open: false, title: '', message: '', action: null})
+function requestConfirm(title, message, action) {
+  confirm.value = { open: true, title, message, action }
+}
+function cancelConfirm() {
+  confirm.value.open = false
+}
+function runConfirm() {
+  const action = confirm.value.action
+  confirm.value.open = false
+  if (action) action()
+}
 
 function createEmptyTask() {
   return {
@@ -77,10 +91,13 @@ function saveTask(targetColumnId) {
 }
 
 function deleteTask() {
-  if (!draft.value?.id || !window.confirm('Yakin ingin menghapus task ini?')) return
-  store.deleteTask(draft.value.id)
-  store.notify('Task berhasil dihapus', 'danger')
-  closeModal()
+  const id = draft.value?.id
+  if (!id) return
+  requestConfirm('Hapus task?', 'Task ini akan dihapus permanen dari board.', () => {
+    store.deleteTask(id)
+    store.notify('Task berhasil dihapus', 'danger')
+    closeModal()
+  })
 }
 
 function addList() {
@@ -93,9 +110,15 @@ function addList() {
 
 function removeList(columnId) {
   const column = store.columns.find((item) => item.id === columnId)
-  if (!column || !window.confirm(`Hapus list "${column.name}"? Task di dalamnya akan dipindah.`)) return
-  store.deleteColumn(columnId)
-  store.notify('List dihapus', 'danger')
+  if (!column) return
+  requestConfirm(
+    `Hapus list "${column.name}"?`,
+    'Task di dalamnya akan dipindahkan ke list pertama.',
+    () => {
+      store.deleteColumn(columnId)
+      store.notify('List dihapus', 'danger')
+    },
+  )
 }
 </script>
 
@@ -147,6 +170,14 @@ function removeList(columnId) {
       @discard="closeModal"
       @close="closeModal"
     />
+
+    <ConfirmModal
+      :is-open="confirm.open"
+      :title="confirm.title"
+      :message="confirm.message"
+      @confirm="runConfirm"
+      @cancel="cancelConfirm"
+    />
   </IonApp>
 </template>
 
@@ -167,7 +198,7 @@ function removeList(columnId) {
 }
 .board-columns {
   display: flex;
-  align-items: flex-start;
+  align-items: stretch;
   gap: 12px;
   height: 100%;
   min-width: min-content;

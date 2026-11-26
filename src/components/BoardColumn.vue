@@ -100,6 +100,7 @@ const tasks = computed({
   flex: 0 0 288px;
   display: flex;
   flex-direction: column;
+  height: 100%;
   max-height: 100%;
   background: var(--c-surface-alt);
   border-radius: 12px;
@@ -191,9 +192,10 @@ const tasks = computed({
   gap: 8px;
   overflow-y: auto;
   overflow-x: hidden;
-  min-height: 12px;
+  min-height: 0;
   padding: 2px 4px 4px;
-  flex: 1 1 auto;
+  flex: 1 1 0;
+  overscroll-behavior: contain;
 }
 .empty {
   margin: 8px 4px;

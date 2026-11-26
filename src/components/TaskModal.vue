@@ -9,6 +9,7 @@ import {
   addOutline,
   trashOutline,
   calendarOutline,
+  downloadOutline,
 } from 'ionicons/icons';
 import {useBoardStore} from '../stores/board';
 
@@ -40,7 +41,7 @@ watch(
   () => {
     if (props.isOpen) syncColumn();
   },
-  {immediate: true},
+  {immediate: true, flush: 'sync'},
 );
 
 const doneCount = computed(
@@ -74,12 +75,46 @@ async function onCover(event) {
   event.target.value = '';
 }
 
-function addFiles(files) {
+function readAsDataUrl(file) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ''));
+    reader.onerror = () => resolve('');
+    reader.readAsDataURL(file);
+  });
+}
+
+async function addFiles(files) {
   if (!props.task) return;
+  if (!props.task.attachments) props.task.attachments = [];
   for (const file of files || []) {
-    if (!props.task.attachments) props.task.attachments = [];
-    props.task.attachments.push({id: uid(), name: file.name});
+    const data = await readAsDataUrl(file);
+    props.task.attachments.push({
+      id: uid(),
+      name: file.name,
+      type: file.type || 'application/octet-stream',
+      size: file.size || 0,
+      data,
+    });
   }
+}
+
+function attachmentHref(file) {
+  if (file.data) return file.data;
+  const placeholder = `File demo "${file.name}" tidak menyimpan isi asli.`;
+  return `data:text/plain;charset=utf-8,${encodeURIComponent(placeholder)}`;
+}
+
+function openAttachment(file) {
+  const href = attachmentHref(file);
+  fetch(href)
+    .then((response) => response.blob())
+    .then((blob) => {
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank', 'noopener');
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    })
+    .catch(() => window.open(href, '_blank', 'noopener'));
 }
 
 function onAttachDrop(event) {
@@ -117,7 +152,6 @@ function toggleAssignee(id) {
 }
 
 function submit() {
-  syncColumn();
   emit('save', form.columnId);
 }
 </script>
@@ -126,7 +160,6 @@ function submit() {
   <IonModal
     :is-open="isOpen"
     class="task-modal"
-    @ionModalDidPresent="syncColumn"
     @ionModalDidDismiss="emit('close')"
   >
     <div v-if="task" class="modal-shell">
@@ -204,7 +237,20 @@ function submit() {
                 <span class="file-icon"
                   ><IonIcon :icon="documentAttachOutline"
                 /></span>
-                <span class="file-name">{{ file.name }}</span>
+                <a
+                  class="file-name"
+                  :href="attachmentHref(file)"
+                  :title="`Buka ${file.name} di tab baru`"
+                  @click.prevent="openAttachment(file)"
+                  >{{ file.name }}</a
+                >
+                <a
+                  class="file-action"
+                  :href="attachmentHref(file)"
+                  :download="file.name"
+                  title="Download"
+                  ><IonIcon :icon="downloadOutline" /></a
+                >
                 <button
                   title="Hapus"
                   @click="
@@ -354,7 +400,7 @@ function submit() {
             </button>
             <div v-if="dateOpen" class="date-panel">
               <IonDatetime
-                :value="task.dueDate"
+                v-model="task.dueDate"
                 presentation="date"
                 :show-default-buttons="true"
                 done-text="OK"
@@ -648,9 +694,25 @@ function submit() {
 }
 .file-name {
   flex: 1;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  color: var(--c-text);
+  text-decoration: none;
+}
+.file-name:hover {
+  color: var(--c-accent);
+  text-decoration: underline;
+}
+.file-action {
+  color: var(--c-text-muted);
+  font-size: 16px;
+  display: inline-flex;
+  padding: 2px;
+}
+.file-action:hover {
+  color: var(--c-accent);
 }
 .attachment-list button,
 .row-del {
