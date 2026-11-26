@@ -1,0 +1,80 @@
+:root {
+  --c-bg: #f1f2f4;
+  --c-surface: #ffffff;
+  --c-surface-alt: #ebecf0;
+  --c-surface-hover: #dfdfe3;
+  --c-text: #172b4d;
+  --c-text-muted: #6b778c;
+  --c-border: #dfe1e6;
+  --c-accent: #0c66e4;
+  --c-accent-hover: #0055cc;
+  --c-accent-soft: #e9f2ff;
+  --c-danger: #c9372c;
+  --c-success: #22a06b;
+  --c-warning: #b38600;
+  --shadow-card: 0 1px 1px rgba(9, 30, 66, 0.25), 0 0 1px rgba(9, 30, 66, 0.13);
+  --shadow-pop: 0 10px 28px rgba(9, 30, 66, 0.22), 0 0 1px rgba(9, 30, 66, 0.2);
+  --radius: 8px;
+
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--c-text);
+  background: var(--c-bg);
+  color-scheme: light;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  margin: 0;
+  height: 100%;
+  height: 100dvh;
+}
+
+body {
+  background: var(--c-bg);
+  overflow: hidden;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+ion-app {
+  height: 100%;
+  height: 100dvh;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(9, 30, 66, 0.18);
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(9, 30, 66, 0.3);
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
